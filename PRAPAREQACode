@@ -1,0 +1,133 @@
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    static void Main()
+    {
+        string inputText = @"
+4
+PRAPARE
+
+Protocol for Responding to and Assessing Patients’
+Assets, Risks and Experiences
+
+Patient Narre: tip D0: =
+
+Please complete the following questions to help determine if you quallfy for our community health worker p
+
+ 
+
+ 
+
+1.What is your housing situation today? (Choose one of the following.)
+
+* X_Ihave housing
+
+* __1 do not have housing (staying with others, in a hotel, in a shelter, living
+outside on the street, on a beach, ina car, or ina park)
+
+2. Are you worried about losing your housing? (Choose one of the following.)
+ee — |
+e X_No
+
+3. In the past year, have you or any family members you live with been unable to get
+any of the following when it was really needed? (Check all that apply.)
+
+© _ Food
+
+© X__ Clothing
+
+© __ Utilities
+
+© __ Childcare
+
+* ___ Medicine or Any Health Care (Medical, Dental, Mental Health, Vision) Phone
+* ___ Other (enter written answer):
+
+ 
+
+4. In the past year, has lack of transportation kept you from medical appointments,
+meetings, work, or from getting things needed for daily living? (Check all that apply.)
+
+* ___Yes, it has kept me from medical appointments or from getting my medications.
+
+* ___ Yes, it has kept me from non-medical meetings, appointments, work, or from
+getting things that | need.
+
+° X_No
+
+PrimaryPlus
+
+‘www.primaryplus.net
+";
+
+        string pattern = @"Patient Narre:\s*(?<PatientName>\S+)\s*D0:\s*(?<D0Value>\S+)";
+
+        // Use Regex.Match to find the match in the input text
+        Match match = Regex.Match(inputText, pattern);
+
+        if (match.Success)
+        {
+            // Access captured values using group names
+            string patientName = match.Groups["PatientName"].Value;
+            string d0Value = match.Groups["D0Value"].Value;
+
+            Console.WriteLine($"Patient Name: {patientName}\tD0 Value: {d0Value}");
+        }
+
+        for (int i = 1; i <= 4; i++)
+        {
+            ExtractAndPrint(i, i + 1, inputText);
+        }
+    }
+
+    static void ExtractAndPrint(int startQuestionNumber, int endQuestionNumber, string inputText)
+    {
+        string question;
+        string answer;
+
+        ExtractLinesBetweenQuestions(startQuestionNumber, endQuestionNumber, inputText, out question, out answer);
+
+        Console.WriteLine($"Question: {question}\tAnswer: {answer}");
+    }
+
+    static void ExtractLinesBetweenQuestions(int startQuestionNumber, int endQuestionNumber, string inputText, out string question, out string answer)
+    {
+        question = null;
+        answer = null;
+
+        string[] lines = inputText.Split('\n');
+        bool withinRange = false;
+
+        foreach (string line in lines)
+        {
+            string trimmedLine = line.Trim();
+
+            if (withinRange)
+            {
+                if (trimmedLine.Contains("X_"))
+                {
+                    answer = trimmedLine;
+                    break; // Exit the loop after finding the first answer
+                }
+            }
+
+            if (Regex.IsMatch(trimmedLine, $"^{startQuestionNumber}\\..+"))
+            {
+                withinRange = true;
+                question = trimmedLine;
+            }
+
+            if (Regex.IsMatch(trimmedLine, $"^{endQuestionNumber}\\..+"))
+            {
+                withinRange = false;
+                break; // Exit the loop after processing the specified end question number
+            }
+        }
+    }
+
+
+
+}
